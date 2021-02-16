@@ -114,9 +114,9 @@ exports.addnewpost=catchasync( async(req,res,next)=>{
         if(!user)
         return next(new AppError('cannot update posts of user',404));
 
-        res.status(200).json({
+        res.status(201).json({
             status:'success',
-            user
+            data:req.post
         });
     
 });

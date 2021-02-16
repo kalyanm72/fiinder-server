@@ -22,14 +22,6 @@ const postschema = new mongoose.Schema({
     owner:{
         type:String
     },
-    claimed:{
-        type:Boolean,
-        default:false
-    },
-    claimant:{
-        type:String,
-        select:false
-    },
     lost:{
         type:Boolean,
         default:false
@@ -87,11 +79,11 @@ postschema.pre('save',function(next){
     next();
 });
 
+// embedding
 postschema.pre('save',async function(next){
 
     this.owner=await User.findById(this.owner);
-    this.claimant=await User.findById(this.claimant);
-
+    
     next();
 });
 

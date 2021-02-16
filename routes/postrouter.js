@@ -1,36 +1,17 @@
 const express = require('express');
 const postrouter=express.Router();
-const fs = require('fs');
-const Post = require('../models/postmodel');
-const User = require('../models/usermodel');
-
-const data=JSON.parse(fs.readFileSync(`${__dirname}/../tempdata/post.json`,'utf-8'));
+const authcontroller = require('../controllers/authcontroller');
+const postscontroller = require('../controllers/postscontroller');
+const usercontroller = require('../controllers/usercontroller');
 
 
-postrouter.get('/',(req,res)=>{
-    res.status(200).json({
-        status:'success',
-        data
-    });
-});
+postrouter.get('/',postscontroller.getallposts)
+          .post('/',authcontroller.protect,postscontroller.newpost,usercontroller.addnewpost);
+
+postrouter.get('/:id',postscontroller.getpost)
+            .patch(':/id',authcontroller.protect,postscontroller.updatepost)
+            .delete(':/id',authcontroller.protect,postscontroller.deletepost);
 
 
-postrouter.post('/',async (req,res,next)=>{
-    try{
-        
-        const post=await Post.create(req.body);
-        
-        req.body.postid=post._id;
-
-        req.body.post=post;
-
-        next();
-    }
-    catch(err){
-        res.status(404).json({
-            err
-        });
-    }
-});
 
 module.exports = postrouter;
