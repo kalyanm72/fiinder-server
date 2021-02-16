@@ -37,7 +37,6 @@ const userschema = new mongoose.Schema({
     },
     mobilenum:{
         type:String,
-        unique:true,
         validate:[validator.isMobilePhone,'Invalid mobile number provided check again']
     },
     email:{
@@ -129,22 +128,27 @@ userschema.methods.correctpassword=async function(pass,orgpass){
     return await bcrypt.compare(pass,orgpass);
 }
 
-userschema.methods.canpost = async function(){
-    if((this.violation.banned&&Date.now<this.violation.bantime))
-    return {
-        access:false,
-        message:'The user is banned'
-    };
+userschema.methods.isbanned = function(){
+    if((this.violation.banned&&Date.now()<this.violation.bantime))
+    return 1;
+    return 0;
+}
+userschema.methods.canpost =  function(){
+    
 
     if(!this.mobilenum)
     return {
         access:false,
         message:'The user has not given mobile number'
     };
+    if(!this.profile.address)
+    return {
+        access:false,
+        message:'The user has not given address'
+    };
 
     return {
-        access:true,
-        message:'The user has not given mobile number'
+        access:true
     };
 }
 

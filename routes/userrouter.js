@@ -5,23 +5,24 @@ const authcontroller = require('../controllers/authcontroller');
 const usercontroller = require('../controllers/usercontroller');
 
 
-userrouter.post('/signup',authcontroller.signup);
-userrouter.post('/login',authcontroller.login);
+userrouter.post('/signup',authcontroller.signup); // ok
+userrouter.post('/login',authcontroller.login); //ok 
 
 // should be logged in before
-userrouter.use(authcontroller.protect);
+userrouter.use(authcontroller.protect); //ok
 
-userrouter.patch('/updateprofile',usercontroller.updateprofile);
-userrouter.patch('/newpost',usercontroller.addnewpost);
+userrouter.patch('/updateprofile',usercontroller.updateprofile); //ok
+userrouter.patch('/newpost',usercontroller.addnewpost); //test
 
 
 // only for super users
-userrouter.use(authcontroller.restrictto);
+userrouter.use(authcontroller.restrictto); 
 
-userrouter.route('/').post(usercontroller.createuser).get(usercontroller.getallusers);
+userrouter.route('/').post(usercontroller.createuser).get(usercontroller.getallusers); //ok
+userrouter.route('/:id').get(usercontroller.getuserid); //ok
 
-userrouter.route('/banuser/:id').patch(usercontroller.banuser);
-userrouter.route('/unbanuser/:id').patch(usercontroller.unbanuser);
+userrouter.route('/:id/ban').patch(usercontroller.banuser); //ok
+userrouter.route('/:id/unban').patch(usercontroller.unbanuser); //ok
 
 
 module.exports = userrouter;

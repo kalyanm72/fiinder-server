@@ -6,8 +6,12 @@ const catchasync = require('../utils/catchasync');
 // add new post
 exports.newpost=catchasync(async (req,res,next)=>{
 
-
-    const newPost=await Post.create(req.body);
+    let newPost;
+    const canpost=req.user.canpost();
+    if(canpost.access===true)
+    newPost=await Post.create(req.body);
+    else
+    return next(new AppError(canpost.message,403))
 
     next();
 });

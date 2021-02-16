@@ -36,17 +36,7 @@ exports.signup = catchasync( async(req,res)=>{
         const newUser = await User.create({
             email:req.body.email,
             password:req.body.password,
-            profile:{
-                firstname:req.body.profile.firstname,
-                middlename:req.body.profile.middlename,
-                lastname:req.body.profile.lastname,
-                address:{
-                    city:req.body.profile.address.city,
-                    pincode:req.body.profile.address.pincode,
-                    fulladdress:req.body.profile.address.fulladdress
-                },
-                displaypic:req.body.profile.displaypic
-            },
+            profile:req.body.profile,
             mobilenum:req.body.mobilenum,
             password:req.body.password
         });
@@ -71,6 +61,8 @@ exports.login = catchasync(async (req,res,next)=>{
 
 exports.protect = catchasync(async(req,res,next)=>{
     let token;
+
+    
     if(req.headers.authorization&&req.headers.authorization.startsWith('Bearer'))
     token=req.headers.authorization.split(' ')[1];
     else if(req.cookies.jwt)
@@ -80,13 +72,14 @@ exports.protect = catchasync(async(req,res,next)=>{
     return next(new AppError('User not logged in',401));
 
     const org_token= await promisify(jwt.verify)(token,process.env.JWT_KEY);
+    // console.log(org_token)
 
-    const user = await User.findById(org_token.id);
+    const user = await User.findById(org_token.id).select('+superuser');
 
     if(!user)
     return next(new AppError('User no longer exists',401));
 
-    if(!user.changedpassword(org_token.iat))
+    if(user.changedpassword(org_token.iat))
     return next(new AppError('User has changed Password',401));
 
     req.user=user;
@@ -95,7 +88,7 @@ exports.protect = catchasync(async(req,res,next)=>{
 }); 
 
 exports.restrictto = (req,res,next)=>{
-    if(res.user.superuser)
-    next();
+    if(req.user.superuser)
+    return next();
     return next(new AppError('Route Unauthorized',403));
 }

@@ -5,9 +5,9 @@ const AppError = require('../utils/apperror');
 exports.getallusers=catchasync(async (req,res,next)=>{
     
         // console.log(req.body);
-        const users=await User.Find();
+        const users=await User.find().select('+superuser +violation');
 
-        if(!user)
+        if(!users)
         return next(new AppError('no users available',404));
 
         res.status(200).json({
@@ -18,10 +18,9 @@ exports.getallusers=catchasync(async (req,res,next)=>{
 
 });
 
-exports.getuserid =catchasync(async (req,res)=>{
+exports.getuserid =catchasync(async (req,res,next)=>{
     
-        // console.log(req.body);
-        const user=await User.findById(req.body.id);
+        const user=await User.findById(req.params.id).select('+violation +superuser');
         if(!user)
         return next(new AppError('No user found with id',404));
 
@@ -36,9 +35,6 @@ exports.getuserid =catchasync(async (req,res)=>{
 exports.createuser = catchasync(async(req,res)=>{
       if(!req.body.superuser)
       return next(new AppError('This route is only for authorized users',403));
-
-      if(!req.user.superuser)
-      return next(new AppError('You are unauthorized to perform this action',403));
 
       const newUser = await User.create({
         email:req.body.email,
@@ -108,7 +104,8 @@ exports.addnewpost=catchasync( async(req,res,next)=>{
         const filteredbody=filterObj(req.body,'postid');
 
         const user = await User.findByIdAndUpdate(req.user.id,{$push:{posts:filteredbody.postid}},{
-            new:true
+            new:true,
+            runvalidators:true
         });
 
         if(!user)
@@ -123,12 +120,16 @@ exports.addnewpost=catchasync( async(req,res,next)=>{
 
 const banduration=[10,20,30,60,120];
 
-exports.banuser =catchasync( async(req,res)=>{
-    
-        const user = User.findByIdAndUpdate(req.params.id,{violation:{
+exports.banuser =catchasync( async(req,res,next)=>{
+
+        
+        const user = await User.findByIdAndUpdate(req.params.id,{violation:{
             banned:true,
-            bantime:Date.now()+banduration[req.body.banserverity]*86400000
-        }});
+            bantime:new Date(Date.now()+banduration[req.body.banseverity]*86400000)
+        }},
+        {
+        new:true,
+        runvalidators:true});
 
         if(!user){
             return next(new AppError('cannot ban user',404));
@@ -142,11 +143,13 @@ exports.banuser =catchasync( async(req,res)=>{
 
 });
 
-exports.unbanuser =catchasync( async(req,res)=>{
+exports.unbanuser =catchasync( async(req,res,next)=>{
     
-    const user = User.findByIdAndUpdate(req.body.id,{violation:{
+    const user = await User.findByIdAndUpdate(req.params.id,{violation:{
         banned:false
-    }});
+    }},{
+    new:true,
+    runvalidators:true});
 
     if(!user){
         return next(new AppError('cannot unban user',404));
