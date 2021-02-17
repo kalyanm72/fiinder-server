@@ -7,8 +7,9 @@ const catchasync = require('../utils/catchasync');
 exports.newpost=catchasync(async (req,res,next)=>{
 
     let newPost;
-    const canpost=req.user.canpost();
+    const canpost = req.user.canpost();
 
+    req.body.owner=req.user.id;
     if(canpost.access===true)
     newPost=await Post.create(req.body);
     else
@@ -18,10 +19,21 @@ exports.newpost=catchasync(async (req,res,next)=>{
     next();
 });
 
+const canalterpost=(posts,postid)=>{
+    let flg=0;
+    posts.forEach(el => {
+        if(el._id==postid)
+        flg= 1;
+    });
+    return flg;
+}
 
 // modify post
-exports.updatepost=catchasync(async(req,res)=>{
+exports.updatepost=catchasync(async(req,res,next)=>{
 
+
+    if(!canalterpost(req.user.posts,req.params.id))
+    return next(new AppError('You can only update your posts'));
 
     const post = await Post.findByIdAndUpdate(req.params.id,req.body,{
         runValidators:true,
@@ -40,10 +52,12 @@ exports.updatepost=catchasync(async(req,res)=>{
 });
 
 // delete post
-exports.deletepost=catchasync(async (req,res)=>{
+exports.deletepost=catchasync(async (req,res,next)=>{
 
-
-    const post = await Post.findByIdAndDelete(req.params.id);
+    if(!canalterpost(req.user.posts,req.params.id))
+    return next(new AppError('You can only delete your posts'));
+    
+    const post = await Post.findByIdAndDelete(req.params.id)
 
     if(!post)
     return next(new AppError('No post found with id',404));
@@ -57,7 +71,8 @@ exports.deletepost=catchasync(async (req,res)=>{
 
 // view all post
 exports.getallposts=catchasync(async (req,res)=>{
-    const posts = Post.find();
+    
+    const posts =await Post.find();
 
     res.status(200).json({
         status:'success',
@@ -68,7 +83,11 @@ exports.getallposts=catchasync(async (req,res)=>{
 
 // view specific post
 exports.getpost=catchasync(async (req,res)=>{
-    const post = Post.findById(req.params.id);
+
+    const post = await Post.findById(req.params.id);
+
+    if(!post)
+    return next(new AppError('No post found with id',404));
 
     res.status(200).json({
         status:'success',

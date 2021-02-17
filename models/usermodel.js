@@ -57,8 +57,7 @@ const userschema = new mongoose.Schema({
         },
         bantime:{
             type:Date
-        },
-        select:false
+        }
     },
     superuser:{
         type:Boolean,

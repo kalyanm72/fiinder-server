@@ -20,7 +20,7 @@ exports.getallusers=catchasync(async (req,res,next)=>{
 
 exports.getuserid =catchasync(async (req,res,next)=>{
     
-        const user=await User.findById(req.params.id).select('+violation +superuser');
+        const user=await User.findById(req.params.id).select('-mobilenum');
         if(!user)
         return next(new AppError('No user found with id',404));
 
