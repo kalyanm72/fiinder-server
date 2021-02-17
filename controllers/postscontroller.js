@@ -8,11 +8,13 @@ exports.newpost=catchasync(async (req,res,next)=>{
 
     let newPost;
     const canpost=req.user.canpost();
+
     if(canpost.access===true)
     newPost=await Post.create(req.body);
     else
     return next(new AppError(canpost.message,403))
 
+    req.post=newPost;
     next();
 });
 

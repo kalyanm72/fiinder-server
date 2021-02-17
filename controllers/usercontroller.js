@@ -101,9 +101,8 @@ exports.updateprofile = catchasync(async(req,res,next)=>{
 
 exports.addnewpost=catchasync( async(req,res,next)=>{
     
-        const filteredbody=filterObj(req.body,'postid');
 
-        const user = await User.findByIdAndUpdate(req.user.id,{$push:{posts:filteredbody.postid}},{
+        const user = await User.findByIdAndUpdate(req.user.id,{$push:{posts:req.post.id}},{
             new:true,
             runvalidators:true
         });

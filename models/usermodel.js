@@ -74,9 +74,10 @@ const userschema = new mongoose.Schema({
     },
     passwordconf:{
         type:String,
+        required:[true,'A password confirm is mandatory'],
         validate:{
             validator:function(el){
-                return this.password===el;
+                return el===this.password;
             },
             message:'Passwords do not match check again'
         }

@@ -38,20 +38,22 @@ exports.signup = catchasync( async(req,res)=>{
             password:req.body.password,
             profile:req.body.profile,
             mobilenum:req.body.mobilenum,
-            password:req.body.password
+            passwordconf:req.body.passwordconf
         });
         
         logintheuser(201,newUser,res);
 });
 
 exports.login = catchasync(async (req,res,next)=>{
-    const {email,password}=req.body;
+    const {email,password} = req.body;
     if(!email||!password)
     return next(new AppError('email or password not provided',400));
 
     const user = await User.findOne({email:email}).select('+password +superuser');
 
-    if(!user.correctpassword(password,user.password))
+    console.log(password);
+    // use await due to bcrypt
+    if(!user || !await user.correctpassword(password,user.password))
     return next(new AppError('Email or Password is invalid',401));
 
     logintheuser(200,user,res);

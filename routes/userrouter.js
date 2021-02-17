@@ -12,7 +12,6 @@ userrouter.post('/login',authcontroller.login); //ok
 userrouter.use(authcontroller.protect); //ok
 
 userrouter.patch('/updateprofile',usercontroller.updateprofile); //ok
-userrouter.patch('/newpost',usercontroller.addnewpost); //test
 
 
 // only for super users
