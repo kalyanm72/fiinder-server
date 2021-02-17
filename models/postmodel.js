@@ -63,7 +63,11 @@ const postschema = new mongoose.Schema({
         type:Date,
         default:Date.now(),
         select:false
-    }
+    },
+    claims:[{type:mongoose.Schema.ObjectId,
+        ref:'User',select:false}],
+    reports:[{type:mongoose.Schema.ObjectId,
+        ref:'User',select:false}]
 
 });
 

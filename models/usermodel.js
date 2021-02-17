@@ -3,6 +3,8 @@ const validator = require('validator');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 
+
+
 const userschema = new mongoose.Schema({
     profile:{
         firstname:{
@@ -19,7 +21,7 @@ const userschema = new mongoose.Schema({
             hostel:{
                 type:String,
                 enum:['Bh-1','Bh-2','Bh-3','Bh-4'],
-                description:"Hostel can be only Bh-1,2,3,4"
+                description:'Hostel can be only Bh-1,2,3,4'
             },
             roomno:{
                 type:Number,
@@ -49,10 +51,6 @@ const userschema = new mongoose.Schema({
         lowecase:true,
         unique:true
     },
-    posts:[{
-            type:mongoose.Schema.ObjectId,
-            ref:'Post'
-    }],
     violation:{
         banned:{
             type:Boolean,
@@ -60,8 +58,18 @@ const userschema = new mongoose.Schema({
         },
         bantime:{
             type:Date
-        }
+        },
+        select:false
     },
+    posts:{
+        type:mongoose.Schema.ObjectId,
+        ref:'Post',
+        select:false
+    },
+    claimedposts:[{type:mongoose.Schema.ObjectId,
+        ref:'Post',select:false}],
+    reportedposts:[{type:mongoose.Schema.ObjectId,
+        ref:'Post',select:false}],
     superuser:{
         type:Boolean,
         default:false,
@@ -117,11 +125,11 @@ userschema.pre('save',function(next){
 
 
 // query middleware
-userschema.pre(/^find/,function(next){
-    // populating posts on find user
-    this.populate({path:'posts',select:'-__v'});
-    next();
-  });
+// userschema.pre(/^find/,function(next){
+//     // populating posts on find user
+//     this.populate({path:'posts',select:'-__v'});
+//     next();
+//   });
 
 
 

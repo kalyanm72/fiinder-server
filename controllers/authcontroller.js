@@ -77,7 +77,7 @@ exports.protect = catchasync(async(req,res,next)=>{
     const org_token= await promisify(jwt.verify)(token,process.env.JWT_KEY);
     // console.log(org_token)
 
-    const user = await User.findById(org_token.id).select('+superuser');
+    const user = await User.findById(org_token.id).select('+superuser +posts +claimedposts +reportedposts');
 
     if(!user)
     return next(new AppError('User no longer exists',401));

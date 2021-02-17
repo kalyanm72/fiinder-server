@@ -18,10 +18,61 @@ exports.getallusers=catchasync(async (req,res,next)=>{
 
 });
 
+
+exports.addclaims = catchasync(async(req,res,next)=>{
+
+    const user = await User.findByIdAndUpdate(req.user.id,{$push:{claimedposts:req.post.id}},{
+        runValidators:true,
+        new:true
+    });
+
+    if(!user)
+    return next(new AppError('No user found with id'));
+
+    res.status(200).json({
+        status:'success',
+        data:{
+            post,
+            user
+        }
+    });
+
+});
+
+exports.addreport = catchasync(async(req,res,next)=>{
+
+    const user = await User.findByIdAndUpdate(req.user.id,{$push:{reportedposts:req.post.id}},{
+        runValidators:true,
+        new:true
+    });
+
+    if(!user)
+    return next(new AppError('No user found with id'));
+
+    res.status(200).json({
+        status:'success',
+        data:{
+            post,
+            user
+        }
+    });
+
+});
+
+
 exports.getuserid = catchasync(async (req,res,next)=>{
     
+        let id='5';
+        // superuser route
+        if(req.params.id)
+        id = req.params.id;
 
-        const user=await User.findById(req.params.id).select('-mobilenum ');
+        // claimed person route
+        else if(req.body.id)
+        id=req.body.id;
+
+        const user=await User.findById(id);
+
         if(!user)
         return next(new AppError('No user found with id',404));
 
@@ -33,27 +84,18 @@ exports.getuserid = catchasync(async (req,res,next)=>{
 });
 
 // only super users can create super users
-exports.createuser = catchasync(async(req,res)=>{
-      if(!req.body.superuser)
+exports.createuser = catchasync(async(req,res,next)=>{
+      if(!req.user.superuser)
       return next(new AppError('This route is only for authorized users',403));
 
       const newUser = await User.create({
         email:req.body.email,
-        password:req.body.password,
-        profile:{
-            firstname:req.body.profile.firstname,
-            middlename:req.body.profile.middlename,
-            lastname:req.body.profile.lastname,
-            address:{
-                city:req.body.profile.address.city,
-                pincode:req.body.profile.address.pincode,
-                fulladdress:req.body.profile.address.fulladdress
-            },
-            displaypic:req.body.profile.displaypic
-        },
-        superuser:req.body.superuser,
-        mobilenum:req.body.mobilenum,
-        password:req.body.password
+            password:req.body.password,
+            profile:req.body.profile,
+            mobilenum:req.body.mobilenum,
+            rollno:req.body.rollno,
+            passwordconf:req.body.passwordconf,
+            superuser:true
     });
 
     // dont display password
@@ -86,7 +128,7 @@ exports.updateprofile = catchasync(async(req,res,next)=>{
 
         const user = await User.findByIdAndUpdate(req.user.id,filteredbody,{
             new:true,
-            validators:true
+            runValidators:true
         });
 
         if(!user){
@@ -105,7 +147,7 @@ exports.addnewpost=catchasync( async(req,res,next)=>{
 
         const user = await User.findByIdAndUpdate(req.user.id,{$push:{posts:req.post.id}},{
             new:true,
-            runvalidators:true
+            runValidators:true
         });
 
         if(!user)
@@ -118,14 +160,6 @@ exports.addnewpost=catchasync( async(req,res,next)=>{
     
 });
 
-exports.canrequestdet = (req,res,next)=>{
-
-    let canpost=req.user.canpost();
-    if(req.user.superuser||canpost.access===true)
-    return next();
-
-    return next(new AppError(canpost.message,403))
-}
 
 const banduration=[10,20,30,60,120];
 
@@ -138,7 +172,7 @@ exports.banuser =catchasync( async(req,res,next)=>{
         }},
         {
         new:true,
-        runvalidators:true});
+        runValidators:true});
 
         if(!user){
             return next(new AppError('cannot ban user',404));
@@ -158,7 +192,7 @@ exports.unbanuser =catchasync( async(req,res,next)=>{
         banned:false
     }},{
     new:true,
-    runvalidators:true});
+    runValidators:true});
 
     if(!user){
         return next(new AppError('cannot unban user',404));

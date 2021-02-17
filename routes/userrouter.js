@@ -12,7 +12,11 @@ userrouter.post('/login',authcontroller.login); //ok
 userrouter.use(authcontroller.protect); //ok
 
 userrouter.patch('/updateprofile',usercontroller.updateprofile); //ok
-userrouter.route('/:id').get(usercontroller.canrequestdet,usercontroller.getuserid); //ok
+userrouter.route('/:id').get(authcontroller.restrictto,usercontroller.getuserid); //ok
+
+// not usefull instead user can search for all posts which he is owner and can populate respectively
+// userrouter.route('/getmyposts').get(usercontroller.getuserposts);
+
 
 // only for super users
 userrouter.use(authcontroller.restrictto); 
