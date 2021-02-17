@@ -61,15 +61,15 @@ const userschema = new mongoose.Schema({
         },
         select:false
     },
-    posts:{
+    posts:[{
         type:mongoose.Schema.ObjectId,
         ref:'Post',
         select:false
-    },
+    }],
     claimedposts:[{type:mongoose.Schema.ObjectId,
-        ref:'Post',select:false}],
+        ref:'Post',select:false,unique:true}],
     reportedposts:[{type:mongoose.Schema.ObjectId,
-        ref:'Post',select:false}],
+        ref:'Post',select:false,unique:true}],
     superuser:{
         type:Boolean,
         default:false,

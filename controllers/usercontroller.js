@@ -21,14 +21,14 @@ exports.getallusers=catchasync(async (req,res,next)=>{
 
 exports.addclaims = catchasync(async(req,res,next)=>{
 
-    const user = await User.findByIdAndUpdate(req.user.id,{$push:{claimedposts:req.post.id}},{
+    const user = await User.findByIdAndUpdate(req.user.id,{$addToSet:{claimedposts:req.post.id}},{
         runValidators:true,
         new:true
     });
 
     if(!user)
-    return next(new AppError('No user found with id'));
-
+    return next(new AppError('No user found with id',404));
+    const post = req.post;
     res.status(200).json({
         status:'success',
         data:{
@@ -41,14 +41,15 @@ exports.addclaims = catchasync(async(req,res,next)=>{
 
 exports.addreport = catchasync(async(req,res,next)=>{
 
-    const user = await User.findByIdAndUpdate(req.user.id,{$push:{reportedposts:req.post.id}},{
+   
+    const user = await User.findByIdAndUpdate(req.user.id,{$addToSet:{reportedposts:req.post.id}},{
         runValidators:true,
         new:true
     });
 
     if(!user)
     return next(new AppError('No user found with id'));
-
+    const post = req.post;
     res.status(200).json({
         status:'success',
         data:{
@@ -71,7 +72,11 @@ exports.getuserid = catchasync(async (req,res,next)=>{
         else if(req.body.id)
         id=req.body.id;
 
-        const user=await User.findById(id);
+        let options;
+        if(req.body.id){
+            options='-claimedposts -reportedposts -__v -violation -posts';
+        }
+        const user=await User.findById(id).select(options);
 
         if(!user)
         return next(new AppError('No user found with id',404));
@@ -144,8 +149,11 @@ exports.updateprofile = catchasync(async(req,res,next)=>{
 
 exports.addnewpost=catchasync( async(req,res,next)=>{
     
+    const access= req.user.canpost();
+    if(access.access==='false')
+    return next(new AppError(access.message,204));
 
-        const user = await User.findByIdAndUpdate(req.user.id,{$push:{posts:req.post.id}},{
+        const user = await User.findByIdAndUpdate(req.user.id,{$addToSet:{posts:req.post.id}},{
             new:true,
             runValidators:true
         });

@@ -4,6 +4,7 @@ const AppError = require('../utils/apperror');
 const jwt = require('jsonwebtoken');
 const { stat } = require('fs');
 const { promisify } = require('util');
+const { token } = require('morgan');
 
 const signtoken=id=>{
     return jwt.sign({id:id},process.env.JWT_KEY,{expiresIn:process.env.JWT_TIMER});
@@ -50,7 +51,7 @@ exports.login = catchasync(async (req,res,next)=>{
     if(!email||!password)
     return next(new AppError('email or password not provided',400));
 
-    const user = await User.findOne({email:email}).select('+password +superuser');
+    const user = await User.findOne({email:email}).select('+password +superuser +posts +claimedposts +reportedposts');
 
     // console.log(password);
     // use await due to bcrypt
@@ -61,11 +62,18 @@ exports.login = catchasync(async (req,res,next)=>{
 
 });
 
+const checkauthorization =async token =>{
+
+    const org_token= await promisify(jwt.verify)(token,process.env.JWT_KEY);
+
+    const user = await User.findById(org_token.id).select('+superuser +posts +claimedposts +reportedposts');
+
+    return {user,org_token};
+}
 
 exports.protect = catchasync(async(req,res,next)=>{
-    let token;
 
-    
+    let token;
     if(req.headers.authorization&&req.headers.authorization.startsWith('Bearer'))
     token=req.headers.authorization.split(' ')[1];
     else if(req.cookies.jwt)
@@ -74,10 +82,10 @@ exports.protect = catchasync(async(req,res,next)=>{
     if(!token)
     return next(new AppError('User not logged in',401));
 
-    const org_token= await promisify(jwt.verify)(token,process.env.JWT_KEY);
-    // console.log(org_token)
+    const checkauthorizationres = await checkauthorization(token);
 
-    const user = await User.findById(org_token.id).select('+superuser +posts +claimedposts +reportedposts');
+    const user = checkauthorizationres.user;
+    const org_token = checkauthorizationres.org_token;
 
     if(!user)
     return next(new AppError('User no longer exists',401));
@@ -87,8 +95,28 @@ exports.protect = catchasync(async(req,res,next)=>{
 
     req.user=user;
 
+    // console.log(req.user);
+
     next();
 }); 
+
+exports.softprotect=async (req,res,next)=>{
+    if(req.cookies.jwt||(req.headers.authorization&&req.headers.authorization.startsWith('Bearer'))){
+        let token;
+         if(req.headers.authorization&&req.headers.authorization.startsWith('Bearer'))
+        token=req.headers.authorization.split(' ')[1];
+        else if(req.cookies.jwt)
+        token=req.cookies.jwt;
+
+        const checkauthorizationres = await checkauthorization(token);
+
+         const user = checkauthorizationres.user;
+
+        if(user)
+        req.user=user;
+    }
+    next();
+}
 
 exports.restrictto = (req,res,next)=>{
     if(req.user.superuser)

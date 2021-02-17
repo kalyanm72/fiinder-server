@@ -65,9 +65,9 @@ const postschema = new mongoose.Schema({
         select:false
     },
     claims:[{type:mongoose.Schema.ObjectId,
-        ref:'User',select:false}],
+        ref:'User',select:false,unique:true}],
     reports:[{type:mongoose.Schema.ObjectId,
-        ref:'User',select:false}]
+        ref:'User',select:false,unique:true}]
 
 });
 
@@ -75,7 +75,7 @@ const postschema = new mongoose.Schema({
 
 postschema.pre(/^find/,function(next){
     this.find({active:{$ne:false}});
-    this.populate({path:'owner',select:'-__v -mobilenum -posts -passworchangedat -violation'});
+    this.populate({path:'owner',select:'-__v -mobilenum -posts -passworchangedat -violation -claimedposts -reportedposts -profile.address'});
     next();
 });
 

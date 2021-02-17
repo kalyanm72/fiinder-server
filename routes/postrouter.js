@@ -8,14 +8,14 @@ const usercontroller = require('../controllers/usercontroller');
 postrouter.get('/',postscontroller.getallposts) //ok
           .post('/',authcontroller.protect,postscontroller.newpost,usercontroller.addnewpost); //ok
 
-postrouter.get('/:id',postscontroller.getpost) //ok
+postrouter.get('/:id',authcontroller.softprotect, postscontroller.getpost) //ok
             .patch('/:id',authcontroller.protect,postscontroller.updatepost) //ok
             .delete('/:id',authcontroller.protect,authcontroller.restrictto, postscontroller.deletepost); //ok
 
-postrouter.patch('/:id/claim',postscontroller.claim,usercontroller.addclaims);
-postrouter.patch('/:id/report',postscontroller.report,usercontroller.addreport);
+postrouter.patch('/:id/claim',authcontroller.protect,postscontroller.claim,usercontroller.addclaims); //ok
+postrouter.patch('/:id/report',authcontroller.protect,postscontroller.report,usercontroller.addreport); //ok
 
-postrouter.get('/:id/ownerdetails',postscontroller.didclaim, usercontroller.getuserid);
+postrouter.get('/:postid/ownerdetails',authcontroller.protect,postscontroller.didclaim, usercontroller.getuserid);
 
 
 
