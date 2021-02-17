@@ -71,7 +71,7 @@ const postschema = new mongoose.Schema({
 
 postschema.pre(/^find/,function(next){
     this.find({active:{$ne:false}});
-    this.populate({path:'owner',select:'-__v -profile.address -mobilenum -posts -passworchangedat -violation'});
+    this.populate({path:'owner',select:'-__v -mobilenum -posts -passworchangedat -violation'});
     next();
 });
 
@@ -80,8 +80,6 @@ postschema.pre('save',function(next){
     this.slug=slugify(this.name,{lower:true});
     next();
 });
-
-
 
 
 const Post = mongoose.model('Post',postschema);

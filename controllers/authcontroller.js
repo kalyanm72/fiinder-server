@@ -38,6 +38,7 @@ exports.signup = catchasync( async(req,res)=>{
             password:req.body.password,
             profile:req.body.profile,
             mobilenum:req.body.mobilenum,
+            rollno:req.body.rollno,
             passwordconf:req.body.passwordconf
         });
         

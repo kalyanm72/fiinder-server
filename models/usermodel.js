@@ -16,19 +16,19 @@ const userschema = new mongoose.Schema({
             type:String
         },
         address:{
-            city:{
+            hostel:{
                 type:String,
+                enum:['Bh-1','Bh-2','Bh-3','Bh-4'],
+                description:"Hostel can be only Bh-1,2,3,4"
             },
-            pincode:{
+            roomno:{
                 type:Number,
                 validate:{
                     validator:function(el){
-                        return el<1000000||el>=100000;
-                    }
+                        return el>99&&el<=400;
+                    },
+                    message:'Room number should be between 100 and 400'
                 }
-            },
-            fulladdress:{
-                type:String
             }
         },
         displaypic:String,
@@ -36,6 +36,11 @@ const userschema = new mongoose.Schema({
     mobilenum:{
         type:String,
         validate:[validator.isMobilePhone,'Invalid mobile number provided check again']
+    },
+    rollno:{
+        unique:true,
+        type:String,
+        required:[true,'A user must have roll no.']
     },
     email:{
         type:String,

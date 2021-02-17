@@ -12,7 +12,7 @@ userrouter.post('/login',authcontroller.login); //ok
 userrouter.use(authcontroller.protect); //ok
 
 userrouter.patch('/updateprofile',usercontroller.updateprofile); //ok
-userrouter.route('/:id').get(usercontroller.getuserid); //ok
+userrouter.route('/:id').get(usercontroller.canrequestdet,usercontroller.getuserid); //ok
 
 // only for super users
 userrouter.use(authcontroller.restrictto); 

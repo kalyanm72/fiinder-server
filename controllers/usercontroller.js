@@ -20,7 +20,8 @@ exports.getallusers=catchasync(async (req,res,next)=>{
 
 exports.getuserid = catchasync(async (req,res,next)=>{
     
-        const user=await User.findById(req.params.id).select('-mobilenum');
+
+        const user=await User.findById(req.params.id).select('-mobilenum ');
         if(!user)
         return next(new AppError('No user found with id',404));
 
@@ -116,6 +117,15 @@ exports.addnewpost=catchasync( async(req,res,next)=>{
         });
     
 });
+
+exports.canrequestdet = (req,res,next)=>{
+
+    let canpost=req.user.canpost();
+    if(req.user.superuser||canpost.access===true)
+    return next();
+
+    return next(new AppError(canpost.message,403))
+}
 
 const banduration=[10,20,30,60,120];
 
