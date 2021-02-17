@@ -20,7 +20,8 @@ const postschema = new mongoose.Schema({
         type:[String],
     },
     owner:{
-        type:String
+        type:mongoose.Schema.ObjectId,
+        ref:'User'
     },
     lost:{
         type:Boolean,
@@ -70,6 +71,7 @@ const postschema = new mongoose.Schema({
 
 postschema.pre(/^find/,function(next){
     this.find({active:{$ne:false}});
+    this.populate({path:'owner',select:'-__v -profile.address -mobilenum -posts -passworchangedat -violation'});
     next();
 });
 
@@ -79,13 +81,6 @@ postschema.pre('save',function(next){
     next();
 });
 
-// embedding
-postschema.pre('save',async function(next){
-
-    this.owner=await User.findById(this.owner);
-    
-    next();
-});
 
 
 

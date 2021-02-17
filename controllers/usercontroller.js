@@ -18,7 +18,7 @@ exports.getallusers=catchasync(async (req,res,next)=>{
 
 });
 
-exports.getuserid =catchasync(async (req,res,next)=>{
+exports.getuserid = catchasync(async (req,res,next)=>{
     
         const user=await User.findById(req.params.id).select('-mobilenum');
         if(!user)

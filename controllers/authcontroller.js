@@ -51,7 +51,7 @@ exports.login = catchasync(async (req,res,next)=>{
 
     const user = await User.findOne({email:email}).select('+password +superuser');
 
-    console.log(password);
+    // console.log(password);
     // use await due to bcrypt
     if(!user || !await user.correctpassword(password,user.password))
     return next(new AppError('Email or Password is invalid',401));
