@@ -48,7 +48,7 @@ exports.addreport = catchasync(async(req,res,next)=>{
     });
 
     if(!user)
-    return next(new AppError('No user found with id'));
+    return next(new AppError('No user found with id',404));
     const post = req.post;
     res.status(200).json({
         status:'success',

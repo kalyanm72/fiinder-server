@@ -33,7 +33,7 @@ exports.updatepost=catchasync(async(req,res,next)=>{
 
 
     if(!canalterpost(req.user.posts,req.params.id))
-    return next(new AppError('You can only update your posts'));
+    return next(new AppError('You can only update your posts',400));
 
     const post = await Post.findByIdAndUpdate(req.params.id,req.body,{
         runValidators:true,
@@ -55,7 +55,7 @@ exports.updatepost=catchasync(async(req,res,next)=>{
 exports.deletepost=catchasync(async (req,res,next)=>{
 
     if(!canalterpost(req.user.posts,req.params.id))
-    return next(new AppError('You can only delete your posts'));
+    return next(new AppError('You can only delete your posts',400));
     
     const post = await Post.findByIdAndDelete(req.params.id)
 
@@ -153,10 +153,14 @@ exports.didclaim = catchasync(async (req,res,next)=>{
     
     const post = await Post.findById(req.params.postid).select('+claims +reports');
 
-    if(post.claims.includes(req.user.id)||post.reports.includes(req.user.id)){
+    if(post.owner._id == req.user.id){
+        req.body.id = req.user.id;
+        return next();
+    }
+    if((post.claims.includes(req.user.id)||post.reports.includes(req.user.id))){
         
         req.body.id = post.owner._id;
-        console.log(req.body.id);
+
         return next();
     }
 

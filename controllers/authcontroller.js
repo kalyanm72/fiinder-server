@@ -110,7 +110,7 @@ exports.softprotect=async (req,res,next)=>{
 
         const checkauthorizationres = await checkauthorization(token);
 
-         const user = checkauthorizationres.user;
+        const user = checkauthorizationres.user;
 
         if(user)
         req.user=user;
@@ -119,7 +119,7 @@ exports.softprotect=async (req,res,next)=>{
 }
 
 exports.restrictto = (req,res,next)=>{
-    if(req.user.superuser)
+    if(req.user.superuser===true)
     return next();
     return next(new AppError('Route Unauthorized',403));
 }
