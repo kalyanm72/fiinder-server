@@ -1,6 +1,7 @@
 const User = require('../models/usermodel');
 const catchasync = require('../utils/catchasync');
 const AppError = require('../utils/apperror');
+const Email = require('../utils/email');
 
 exports.getallusers=catchasync(async (req,res,next)=>{
     
@@ -29,6 +30,27 @@ exports.addclaims = catchasync(async(req,res,next)=>{
     if(!user)
     return next(new AppError('No user found with id',404));
     const post = req.post;
+
+
+    try{
+        
+        const details={
+            ownername:req.post.owner.profile.firstname,
+            address:user.profile.address.hostel+' Room No: '+user.profile.address.roomno,
+            mobilenum:user.mobilenum,
+            rollno:`${user.rollno ? user.rollno:''}`,
+            email:user.email,
+            postname:req.post.slug
+        }
+        
+        const owner=req.post.owner;
+
+        await new Email(owner,'https://google.com').sendClaimed(details);
+
+    }catch(err){
+        return next(new AppError(`email cant be sent ${err}`));
+    }
+
     res.status(200).json({
         status:'success',
         data:{
@@ -50,6 +72,26 @@ exports.addreport = catchasync(async(req,res,next)=>{
     if(!user)
     return next(new AppError('No user found with id',404));
     const post = req.post;
+
+    try{
+        
+        const details={
+            ownername:req.post.owner.profile.firstname,
+            address:user.profile.address.hostel+' Room No: '+user.profile.address.roomno,
+            mobilenum:user.mobilenum,
+            rollno:`${user.rollno ? user.rollno:''}`,
+            email:user.email,
+            postname:req.post.slug
+        }
+        
+        const owner=req.post.owner;
+
+        await new Email(owner,'https://google.com').sendReported(details);
+
+    }catch(err){
+        return next(new AppError(`email cant be sent ${err}`));
+    }
+
     res.status(200).json({
         status:'success',
         data:{

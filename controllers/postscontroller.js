@@ -112,15 +112,23 @@ exports.claim = catchasync(async(req,res,next)=>{
     if(access.access===false)
     return next(new AppError(access.message,204));
 
-    const post = await Post.findByIdAndUpdate(req.params.id,{$addToSet:{claims:req.user.id}},{
-        runValidators:true,
-        new:true
-    });
+    const post = await Post.findOne({_id:req.params.id});
+
+    if(post.claims.includes(req.user.id))
+    return next(new AppError('You have already claimed the Post'));
+
+    post.claims.push(req.user.id);
+
+    await post.save();
 
     if(!post)
     return next(new AppError('Cannot claim post',404));
 
-    req.post=post;
+    // console.log(post);
+
+    req.post = post;
+
+    // console.log(req.post);
 
     next();
 
@@ -128,21 +136,29 @@ exports.claim = catchasync(async(req,res,next)=>{
 
 exports.report = catchasync(async(req,res,next)=>{
 
-    const access = req.user.canpost();
 
+    const access= req.user.canpost();
     if(access.access===false)
     return next(new AppError(access.message,204));
 
-    // mail inform owner about report
-    const post = await Post.findByIdAndUpdate(req.params.id,{$addToSet:{reports:req.user.id}},{
-        runValidators:true,
-        new:true
-    });
+    const post = await Post.findOne({_id:req.params.id}).select('+reports');
+
+
+    if(post.reports.includes(req.user.id))
+    return next(new AppError('You have already reported the Post'));
+
+    post.reports.push(req.user.id);
+
+    await post.save();
 
     if(!post)
-    return next(new AppError('Cannot claim post',404));
+    return next(new AppError('Cannot report post',404));
 
-    req.post=post;
+    // console.log(post);
+
+    req.post = post;
+
+    // console.log(req.post);
 
     next();
 

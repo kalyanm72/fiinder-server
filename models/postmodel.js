@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { default: slugify } = require('slugify');
 const validator = require('validator');
 const User = require('./usermodel');
-
+const AppError = require('../utils/apperror');
 
 const postschema = new mongoose.Schema({
     name:{
@@ -65,9 +65,10 @@ const postschema = new mongoose.Schema({
         select:false
     },
     claims:[{type:mongoose.Schema.ObjectId,
-        ref:'User',select:false,unique:true}],
+        ref:'User',select:false}],
     reports:[{type:mongoose.Schema.ObjectId,
-        ref:'User',select:false,unique:true}]
+        ref:'User',select:false}]
+        
 
 });
 
@@ -79,6 +80,22 @@ postschema.pre(/^find/,function(next){
     next();
 });
 
+
+postschema.pre('save',function(next){
+    if(this.isModified('claims')){
+        if(this.found===true)
+        return next();
+        else
+        throw new AppError('Only found posts can be claimed');
+    }
+    // else if(this.isModified('reports')){
+    //     if(this.lost===true)
+    //     return next();
+    //     else
+    //     throw new AppError('Only Lost posts can be Reported')
+    // }
+    return next();
+});
 
 postschema.pre('save',function(next){
     this.slug=slugify(this.name,{lower:true});

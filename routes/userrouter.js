@@ -8,11 +8,19 @@ const usercontroller = require('../controllers/usercontroller');
 userrouter.post('/signup',authcontroller.signup); // ok
 userrouter.post('/login',authcontroller.login); //ok 
 
+
+userrouter.post('/forgotpassword/:email',authcontroller.forgotpassword);
+userrouter.patch('/resetpassword/:token',authcontroller.resetpassword);
+
+
 // should be logged in before
 userrouter.use(authcontroller.protect); //ok
 
 userrouter.patch('/updateprofile',usercontroller.updateprofile); //ok
 userrouter.route('/:id').get(authcontroller.restrictto,usercontroller.getuserid); //ok
+
+userrouter.patch('/updatepassword',authcontroller.updatepassword);
+
 
 // not usefull instead user can search for all posts which he is owner and can populate respectively
 // userrouter.route('/getmyposts').get(usercontroller.getuserposts);

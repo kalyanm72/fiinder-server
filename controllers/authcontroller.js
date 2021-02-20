@@ -4,14 +4,17 @@ const AppError = require('../utils/apperror');
 const jwt = require('jsonwebtoken');
 const { stat } = require('fs');
 const { promisify } = require('util');
+const fs = require('fs');
 const { token } = require('morgan');
+const Email = require('../utils/email');
+const crypto = require('crypto');
 
 const signtoken=id=>{
     return jwt.sign({id:id},process.env.JWT_KEY,{expiresIn:process.env.JWT_TIMER});
     
 };
   
-const logintheuser=async (statuscode,user,res)=>{
+const logintheuser= async (statuscode,user,res)=>{
     const token = signtoken(user._id);
 
     const cookieoptions={
@@ -25,6 +28,7 @@ const logintheuser=async (statuscode,user,res)=>{
     res.cookie('jwt',token,cookieoptions);
     user.password=undefined;
 
+
     res.status(statuscode).json({
         status:'success',
         user,
@@ -32,8 +36,10 @@ const logintheuser=async (statuscode,user,res)=>{
     });
 
 };
- 
-exports.signup = catchasync( async(req,res)=>{
+
+
+exports.signup = catchasync( async(req,res,next)=>{
+
         const newUser = await User.create({
             email:req.body.email,
             password:req.body.password,
@@ -43,7 +49,18 @@ exports.signup = catchasync( async(req,res)=>{
             passwordconf:req.body.passwordconf
         });
         
+       
+        try{   
+            // send user and url to be clicked
+           await new Email(newUser,`https://google.com`).sendWelcome();
+
+        }
+        catch(err){
+            console.log(err);
+            return next(new AppError('mail could not be sent',400));   
+        }
         logintheuser(201,newUser,res);
+        
 });
 
 exports.login = catchasync(async (req,res,next)=>{
@@ -100,7 +117,7 @@ exports.protect = catchasync(async(req,res,next)=>{
     next();
 }); 
 
-exports.softprotect=async (req,res,next)=>{
+exports.softprotect=catchasync( async (req,res,next)=>{
     if(req.cookies.jwt||(req.headers.authorization&&req.headers.authorization.startsWith('Bearer'))){
         let token;
          if(req.headers.authorization&&req.headers.authorization.startsWith('Bearer'))
@@ -116,10 +133,87 @@ exports.softprotect=async (req,res,next)=>{
         req.user=user;
     }
     next();
-}
+});
 
 exports.restrictto = (req,res,next)=>{
     if(req.user.superuser===true)
     return next();
     return next(new AppError('Route Unauthorized',403));
+}
+
+
+exports.forgotpassword=catchasync( async(req,res,next)=>{
+    const user = await User.findOne({email:req.params.email});
+
+    if(!user)
+    return next(new AppError('No user exist with such email',404));
+
+    const token = user.resettoken();
+    
+    await user.save({validateBeforeSave:false});
+
+    try{
+        
+        const reseturl = `${req.protocol}://${req.get('host')}/api/v1/users/resetpassword/${token}`;
+
+        await new Email(user,reseturl).sendPasswordReset();
+        res.status(200).json({
+            status:'success',
+            message:'email sent successfully'
+        });
+    }catch(err){
+        
+        user.passwordresettoken=undefined;
+        user.passwordresetexpire=undefined;
+
+        await user.save({validateBeforeSave:false});
+        return next(new AppError(err));
+    }
+    
+});
+
+exports.resetpassword=catchasync( async (req,res,next)=>{
+    
+    const hashedtoken=crypto.createHash('sha256').update(req.params.token).digest('hex');
+    const user = await User.findOne({passwordresettoken:hashedtoken});
+
+    if(!user)
+    return next(new AppError('User has not requested for password reset',403));
+
+    user.password=req.body.password;
+    user.passwordconf=req.body.passwordconf;
+
+    user.passwordresettoken=undefined;
+    user.passwordresetexpire=undefined;
+
+    await user.save();
+
+    logintheuser(200,user,res);
+    
+    await new Email(user,'https://fiinder.com/resetpassword').sendPasswordChanged();
+    
+});
+
+exports.updatepassword=async(req,res,next)=>{
+
+    const user = await User.findById(req.user.id);
+
+    if(!user)
+    return next(new AppError('No user found'));
+    
+    if(!user.correctpassword(req.body.passwordCurrent,user.password))
+    return next(new AppError('Incorrect password entered',401));
+
+    user.password=req.body.password;
+    user.passwordconf=req.body.passwordconf;
+    await user.save();
+    try{
+        await new Email(user,'https://fiinder.com/resetpassword').sendPasswordChanged();
+        logintheuser(200,user,res);
+    }
+    catch(err){
+        return next(new AppError(err));
+    }
+    // logg user in again sen new jwt
+    
 }
