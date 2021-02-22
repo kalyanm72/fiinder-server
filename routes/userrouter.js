@@ -19,10 +19,10 @@ userrouter.use(authcontroller.protect); //ok
 userrouter.patch('/updateprofile',usercontroller.updateprofile); //ok
 userrouter.route('/me').get(usercontroller.getme,usercontroller.getuserid);
 
+userrouter.patch('/updatepassword',authcontroller.updatepassword);
+
 userrouter.route('/:id').get(authcontroller.restrictto,usercontroller.getuserid); //ok
 
-
-userrouter.patch('/updatepassword',authcontroller.updatepassword);
 
 
 // not usefull instead user can search for all posts which he is owner and can populate respectively

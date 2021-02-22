@@ -56,8 +56,8 @@ exports.signup = catchasync( async(req,res,next)=>{
 
         }
         catch(err){
-            console.log(err);
-            return next(new AppError('mail could not be sent',400));   
+            // console.log(err);
+            return next(new AppError(`mail could not be sent ${err}`));   
         }
         logintheuser(201,newUser,res);
         
@@ -167,7 +167,7 @@ exports.forgotpassword=catchasync( async(req,res,next)=>{
         user.passwordresetexpire=undefined;
 
         await user.save({validateBeforeSave:false});
-        return next(new AppError(err));
+        return next(new AppError(`Mail cannot be sent ${err}`));
     }
     
 });
@@ -178,7 +178,7 @@ exports.resetpassword=catchasync( async (req,res,next)=>{
     const user = await User.findOne({passwordresettoken:hashedtoken});
 
     if(!user)
-    return next(new AppError('User has not requested for password reset',403));
+    return next(new AppError('Password Reset Link Invalid',403));
 
     user.password=req.body.password;
     user.passwordconf=req.body.passwordconf;
@@ -199,7 +199,7 @@ exports.updatepassword=async(req,res,next)=>{
     const user = await User.findById(req.user.id);
 
     if(!user)
-    return next(new AppError('No user found'));
+    return next(new AppError('No user found',404));
     
     if(!user.correctpassword(req.body.passwordCurrent,user.password))
     return next(new AppError('Incorrect password entered',401));
@@ -212,7 +212,7 @@ exports.updatepassword=async(req,res,next)=>{
         logintheuser(200,user,res);
     }
     catch(err){
-        return next(new AppError(err));
+        return next(new AppError(`Mail cannot be sent ${err}`));
     }
     // logg user in again sen new jwt
     

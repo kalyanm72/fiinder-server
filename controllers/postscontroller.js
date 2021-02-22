@@ -1,6 +1,7 @@
 const Post = require('../models/postmodel');
 const AppError = require('../utils/apperror');
 const catchasync = require('../utils/catchasync');
+const ApiFeatures = require('../utils/apiFeatures');
 
 
 // add new post
@@ -72,7 +73,14 @@ exports.deletepost=catchasync(async (req,res,next)=>{
 // view all post
 exports.getallposts=catchasync(async (req,res)=>{
     
-    const posts =await Post.find().select('-__v');
+    const features = new ApiFeatures(Post.find(),req.query).filter()
+                                                        .paginate()
+                                                        .sort()
+                                                        .limit();
+
+    const posts = await features.query;
+
+    // console.log(req.query);
 
     // check if post is claimed or reported and mark it
     res.status(200).json({
@@ -123,7 +131,7 @@ exports.claim = catchasync(async(req,res,next)=>{
     const post = await Post.findOne({_id:req.params.id});
 
     if(post.claims.includes(req.user.id))
-    return next(new AppError('You have already claimed the Post'));
+    return next(new AppError('You have already claimed the Post',400));
 
     post.claims.push(req.user.id);
 
@@ -151,16 +159,15 @@ exports.report = catchasync(async(req,res,next)=>{
 
     const post = await Post.findOne({_id:req.params.id}).select('+reports');
 
+    if(!post)
+    return next(new AppError('No Such Post found',404));
 
     if(post.reports.includes(req.user.id))
-    return next(new AppError('You have already reported the Post'));
+    return next(new AppError('You have already reported the Post',400));
 
     post.reports.push(req.user.id);
 
     await post.save();
-
-    if(!post)
-    return next(new AppError('Cannot report post',404));
 
     // console.log(post);
 

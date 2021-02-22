@@ -1,9 +1,11 @@
 
 class AppError extends Error{
-    constructor(message,statuscode){
+    constructor(message,statusCode){
         super(message);
-        this.statuscode=statuscode
-        this.staus=`${statuscode}`.startsWith('4')?'fail':'Error',
+        this.statusCode=statusCode;
+        this.status=`${statusCode}`.startsWith('4')?'fail':'Error';
+        
+        this.isOperational=true;
         
         Error.captureStackTrace(this,this.constructor);
     }

@@ -2,11 +2,17 @@ const User = require('../models/usermodel');
 const catchasync = require('../utils/catchasync');
 const AppError = require('../utils/apperror');
 const Email = require('../utils/email');
+const ApiFeatures = require('../utils/apiFeatures');
 
 exports.getallusers=catchasync(async (req,res,next)=>{
     
         // console.log(req.body);
-        const users=await User.find().select('+superuser +violation');
+        const features = new ApiFeatures(User.find(),req.query).filter()
+                                                                .sort()
+                                                                .paginate()
+                                                                .limit();
+
+        const users = await features.query;
 
         if(!users)
         return next(new AppError('no users available',404));
@@ -209,7 +215,7 @@ exports.addnewpost=catchasync( async(req,res,next)=>{
         });
 
         if(!user)
-        return next(new AppError('cannot update posts of user',404));
+        return next(new AppError('No Such post found',404));
 
         res.status(201).json({
             status:'success',
@@ -223,7 +229,7 @@ const banduration=[10,20,30,60,120];
 
 exports.banuser =catchasync( async(req,res,next)=>{
 
-        
+        req.body.banseverity=max(min(req.body.banseverity,5),0);
         const user = await User.findByIdAndUpdate(req.params.id,{violation:{
             banned:true,
             bantime:new Date(Date.now()+banduration[req.body.banseverity]*86400000)
@@ -233,7 +239,7 @@ exports.banuser =catchasync( async(req,res,next)=>{
         runValidators:true});
 
         if(!user){
-            return next(new AppError('cannot ban user',404));
+            return next(new AppError('cannot Find user',404));
         }
         
         res.status(200).json({
@@ -253,7 +259,7 @@ exports.unbanuser =catchasync( async(req,res,next)=>{
     runValidators:true});
 
     if(!user){
-        return next(new AppError('cannot unban user',404));
+        return next(new AppError('cannot Find user',404));
     }
     
     res.status(200).json({

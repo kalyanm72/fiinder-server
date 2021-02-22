@@ -61,6 +61,11 @@ const userschema = new mongoose.Schema({
         },
         select:false
     },
+    createdAt:{
+        type:Date,
+        default:Date.now(),
+        select:false
+    },
     posts:[{
         type:mongoose.Schema.ObjectId,
         ref:'Post',
