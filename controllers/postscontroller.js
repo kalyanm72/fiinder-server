@@ -82,19 +82,27 @@ exports.getallposts=catchasync(async (req,res)=>{
     });
 });
 
+
+exports.getmyposts=(req,res,next)=>{
+    
+    req.params.id=req.user.id;
+
+    next();
+}
 // view specific post
-exports.getpost=catchasync(async (req,res)=>{
+exports.getpost=catchasync(async (req,res,next)=>{
                                                      // get claims reports of his posts 
     let flg=false
     if(req.user && req.user.posts)
     flg = req.user.posts.includes(req.params.id)?true:false;
+
 
     const post = flg?await Post.findById(req.params.id).populate('claims')
                                                        .populate('reports')
                     :await Post.findById(req.params.id).select('-claims -reports -__v');
 
     if(!post)
-    return next(new AppError('No post found with id',404));
+    return next(new AppError('No posts found belonging to user',404));
 
     res.status(200).json({
         status:'success',

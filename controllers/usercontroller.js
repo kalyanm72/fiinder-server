@@ -19,6 +19,12 @@ exports.getallusers=catchasync(async (req,res,next)=>{
 
 });
 
+exports.getme=(req,res,next)=>{
+
+    req.params.id=req.user.id;
+    next();
+}
+
 
 exports.addclaims = catchasync(async(req,res,next)=>{
 
@@ -106,7 +112,7 @@ exports.addreport = catchasync(async(req,res,next)=>{
 exports.getuserid = catchasync(async (req,res,next)=>{
     
         let id='5';
-        // superuser route
+        // superuser route or own user route
         if(req.params.id)
         id = req.params.id;
 
@@ -114,11 +120,13 @@ exports.getuserid = catchasync(async (req,res,next)=>{
         else if(req.body.id)
         id=req.body.id;
 
-        let options;
+        let options,popoptions,popfields;
         if(req.body.id){
             options='-claimedposts -reportedposts -__v -violation -posts';
         }
-        const user=await User.findById(id).select(options);
+        else
+        popoptions='claimedposts reportedposts',popfields='owner slug name location images';
+        const user=await User.findById(id).select(options).populate(popoptions,popfields);
 
         if(!user)
         return next(new AppError('No user found with id',404));

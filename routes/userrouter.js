@@ -17,7 +17,10 @@ userrouter.patch('/resetpassword/:token',authcontroller.resetpassword);
 userrouter.use(authcontroller.protect); //ok
 
 userrouter.patch('/updateprofile',usercontroller.updateprofile); //ok
+userrouter.route('/me').get(usercontroller.getme,usercontroller.getuserid);
+
 userrouter.route('/:id').get(authcontroller.restrictto,usercontroller.getuserid); //ok
+
 
 userrouter.patch('/updatepassword',authcontroller.updatepassword);
 
