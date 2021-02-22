@@ -53,7 +53,7 @@ exports.signup = catchasync( async(req,res,next)=>{
         try{   
             // send user and url to be clicked
            await new Email(newUser,`https://google.com`).sendWelcome();
-
+           
         }
         catch(err){
             // console.log(err);

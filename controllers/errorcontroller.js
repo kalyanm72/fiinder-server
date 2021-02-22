@@ -70,21 +70,27 @@ module.exports=(err,req,res,next)=>{
        
         // use this only for specific type of errors as message will not be destructured
         let error={...err};
-
+        
         if(error.path){
             error=handlecasterror(error);
+            return sendproderror(error,res);
           }
           if(error.code===11000){
             error=handleDuplicate(error);
+            return sendproderror(error,res);
           }
-          if(error._message==='Post validation failed'){
+          if(error._message==='Post validation failed'||error._message==='Validation failed'){
+
               error=Validation(error);
+              return sendproderror(error,res);
           }
           if(error.name==='JsonWebTokenError'){
             error=jsonwebtokenerr();
+            return sendproderror(error,res);
           }
           if(error.name==='TokenExpiredError'){
             error=jwttokenexpirerr();
+            return sendproderror(error,res);
           }
         
         sendproderror(err,res);

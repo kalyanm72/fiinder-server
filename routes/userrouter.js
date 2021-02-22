@@ -1,6 +1,5 @@
 const express = require('express');
 const userrouter = express.Router();
-const User = require('../models/usermodel');
 const authcontroller = require('../controllers/authcontroller');
 const usercontroller = require('../controllers/usercontroller');
 
@@ -16,7 +15,7 @@ userrouter.patch('/resetpassword/:token',authcontroller.resetpassword);
 // should be logged in before
 userrouter.use(authcontroller.protect); //ok
 
-userrouter.patch('/updateprofile',usercontroller.updateprofile); //ok
+userrouter.patch('/updateprofile',usercontroller.uploadUserimage, usercontroller.updateprofile); //ok
 userrouter.route('/me').get(usercontroller.getme,usercontroller.getuserid);
 
 userrouter.patch('/updatepassword',authcontroller.updatepassword);

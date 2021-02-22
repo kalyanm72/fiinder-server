@@ -2,6 +2,7 @@ const nodemailer = require('nodemailer');
 const handlebars = require('handlebars');
 const fs = require('fs');
 const htt = require('html-to-text');
+const sendinBlue = require('nodemailer-sendinblue-transport');
 
 module.exports = class Email{
   constructor(user,url){
@@ -13,13 +14,9 @@ module.exports = class Email{
 
   newTransport(){
     if(process.env.NODE_ENV==='production'){
-      return nodemailer.createTransport({
-        service:'SendGrid',
-        auth:{
-          user:process.env.SENDGRID_USERNAME,
-          pass:process.env.SENDGRID_PASSWORD
-        }
-      });
+      return nodemailer.createTransport(sendinBlue({
+        apiKey: process.env.SENDINBLUE_APIKEY,
+      }));
     }
     return nodemailer.createTransport({
       host:process.env.EMAIL_HOST,
@@ -54,41 +51,25 @@ module.exports = class Email{
 
   async sendWelcome(){
       
-    await this.sendmail('welcome.html','Welcome to Fiinder',[{
-        filename: 'logo-crop.png',
-        path: `${__dirname}/../images/logo-crop.png`,
-        cid: 'unique@cid' //same cid value as in the html img src
-      }]);
+    await this.sendmail('welcome.html','Welcome to Fiinder');
 
   }
 
   async sendPasswordReset(){
 
-    await this.sendmail('passwordreset.html',`Dear ${this.username} Reset your password `,[{
-      filename: 'logo-crop.png',
-      path: `${__dirname}/../images/logo-crop.png`,
-      cid: 'unique@cid' //same cid value as in the html img src
-    }]);
+    await this.sendmail('passwordreset.html',`Dear ${this.username} Reset your password `);
 
   }
 
   async sendPasswordChanged(){
 
-    await this.sendmail('passwordupdated.html',`Dear ${this.username} your password is updated`,[{
-      filename: 'logo-crop.png',
-      path: `${__dirname}/../images/logo-crop.png`,
-      cid: 'unique@cid' //same cid value as in the html img src
-    }]);
+    await this.sendmail('passwordupdated.html',`Dear ${this.username} your password is updated`);
 
   }
 
   async sendClaimed(details){
 
-    await this.sendmail('claimed.html',`Dear ${details.ownername} your Post is Claimed`,[{
-      filename: 'logo-crop.png',
-      path: `${__dirname}/../images/logo-crop.png`,
-      cid: 'unique@cid' //same cid value as in the html img src
-    }],{
+    await this.sendmail('claimed.html',`Dear ${details.ownername} your Post is Claimed`,{
       username:this.username,
       siteurl:this.url,
       ownername:details.ownername,
@@ -103,11 +84,7 @@ module.exports = class Email{
 
   async sendReported(details){
 
-    await this.sendmail('claimed.html',`Dear ${details.ownername} your Post is Reported`,[{
-      filename: 'logo-crop.png',
-      path: `${__dirname}/../images/logo-crop.png`,
-      cid: 'unique@cid' //same cid value as in the html img src
-    }],{
+    await this.sendmail('claimed.html',`Dear ${details.ownername} your Post is Reported`,{
       username:this.username,
       siteurl:this.url,
       ownername:details.ownername,

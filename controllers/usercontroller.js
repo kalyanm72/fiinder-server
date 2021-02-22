@@ -4,6 +4,32 @@ const AppError = require('../utils/apperror');
 const Email = require('../utils/email');
 const ApiFeatures = require('../utils/apiFeatures');
 
+
+// image uploads
+const multer = require('multer');
+
+const multerStorage = multer.diskStorage({
+    destination:  (req, file, cb)=> {
+      cb(null, 'images/users')
+    },
+    filename:  (req, file, cb) =>{
+        const ext = file.mimetype.split('/')[1];
+        const filename = `user-${req.user.id}-${Date.now()}.${ext}`;
+        cb(null, filename);
+    }
+  })
+
+const multerFilter = (req,file,cb)=>{
+    if(file.mimetype.startsWith('image'))
+    cb(null,true);
+    else
+    cb(new AppError('Please upload only image files',400),true);
+}
+
+const upload = multer({storage:multerStorage,fileFilter:multerFilter});
+
+exports.uploadUserimage = upload.single('profile[displaypic]');
+
 exports.getallusers=catchasync(async (req,res,next)=>{
     
         // console.log(req.body);
@@ -181,16 +207,43 @@ const filterObj=(obj,...fields)=>{
 
 exports.updateprofile = catchasync(async(req,res,next)=>{
 
+    // console.log(req.file);
+    // console.log(req.body);
+
     if(req.body.password||req.body.passwordconf)
     return next(new AppError('Cannot update password through this route',403));
 
     
-        const filteredbody=filterObj(req.body,'email','profile','mobilenum');
+        let filteredbody=filterObj(req.body,'email','profile','mobilenum','rollno');
 
-        const user = await User.findByIdAndUpdate(req.user.id,filteredbody,{
-            new:true,
-            runValidators:true
+        let updateopt={};
+
+        filteredbody={...filteredbody};
+
+        
+        if(filteredbody.profile){
+            
+            filteredbody.profile={...filteredbody.profile};
+            
+            // console.log(filteredbody.profile.middlename);
+            for ( const key in filteredbody.profile){
+                updateopt['profile.'+key]=filteredbody.profile[key];
+            }
+
+            if(req.file)
+            updateopt['profile.displaypic']=req.file.filename;
+        }
+        for (const key in filteredbody) {
+            if(key!=='profile')
+            updateopt[key]=filteredbody[key];
+        }
+        
+        // use set for partial update
+        const user = await User.findOneAndUpdate({"_id":req.user.id},{$set:updateopt},{
+            runValidators:true,
+            new:true
         });
+
 
         if(!user){
             return next(new AppError('cannot update details ',404));
@@ -198,7 +251,7 @@ exports.updateprofile = catchasync(async(req,res,next)=>{
 
         res.status(200).json({
             status:'success',
-            user
+            user:user
         });
     
 });
