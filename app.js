@@ -41,6 +41,10 @@ app.use(cookieParser());
 
 // app.use(hpp({whitelist:[]}));
 
+
+app.use(express.static(`${__dirname}/public`));
+
+
 app.use('/api/v1/posts', postrouter);
 
 app.use('/api/v1/users', userrouter);
