@@ -15,7 +15,7 @@ userrouter.patch('/resetpassword/:token',authcontroller.resetpassword);
 // should be logged in before
 userrouter.use(authcontroller.protect); //ok
 
-userrouter.patch('/updateprofile',usercontroller.uploadUserimage, usercontroller.updateprofile); //ok
+userrouter.patch('/updateprofile',usercontroller.uploadUserimage,usercontroller.resizePhoto, usercontroller.updateprofile); //ok
 userrouter.route('/me').get(usercontroller.getme,usercontroller.getuserid);
 
 userrouter.patch('/updatepassword',authcontroller.updatepassword);

@@ -10,8 +10,14 @@ const mongosanitize = require('express-mongo-sanitize');
 const AppError = require('./utils/apperror');
 const postrouter = require('./routes/postrouter'); 
 const userrouter = require('./routes/userrouter'); 
-
 const errorcontroller = require('./controllers/errorcontroller');
+const cloudinary = require('cloudinary');
+
+cloudinary.config({
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.CLOUD_API_KEY,
+    api_secret: process.env.CLOUD_API_SECRET,
+    });
 
 app.use(helmet());
 
@@ -35,10 +41,9 @@ app.use(cookieParser());
 
 // app.use(hpp({whitelist:[]}));
 
+app.use('/api/v1/posts', postrouter);
 
-app.use('/api/v1/posts',postrouter);
-
-app.use('/api/v1/users',userrouter);
+app.use('/api/v1/users', userrouter);
 
 app.all('*',(req,res,next)=>{
 

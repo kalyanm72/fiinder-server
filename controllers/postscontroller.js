@@ -3,6 +3,70 @@ const AppError = require('../utils/apperror');
 const catchasync = require('../utils/catchasync');
 const ApiFeatures = require('../utils/apiFeatures');
 
+const sharp = require('sharp');
+const DatauriParser = require('datauri/parser');
+const cloudinary = require('cloudinary').v2;
+
+
+// image uploads
+const multer = require('multer');
+const { promises } = require('fs');
+
+const multerStorage = multer.memoryStorage();
+
+const multerFilter = (req,file,cb)=>{
+    if(file.mimetype.startsWith('image'))
+    cb(null,true);
+    else
+    cb(new AppError('Please upload only image files',400),true);
+}
+
+const upload = multer({storage:multerStorage,fileFilter:multerFilter});
+
+const parser = new DatauriParser();
+
+const dataUri = file_buffer => parser.format('jpeg', file_buffer);
+
+exports.uploadPostimage = upload.array('images',10);
+
+exports.resizePhoto=catchasync(async(req,res,next)=>{
+    
+    if(!req.files)
+    return next();
+        
+    // const prommises =  sharp(req.files[0].buffer).resize(500,500).toFormat('jpeg')
+    //    .jpeg({quality:90})
+    //    .toBuffer();
+
+    const prommises = req.files.map(el=>{
+        
+        return sharp(el.buffer).resize(750,750).toFormat('jpeg')
+       .jpeg({quality:90})
+       .toBuffer()});
+
+
+    const files_buffer = await Promise.all(prommises);
+
+    // console.log(files_buffer);
+                             
+
+        const files = files_buffer.map(el=> dataUri(el).content);
+
+        let cloud_respones=[];
+
+        cloud_respones = await Promise.all(files.map(el=>cloudinary.uploader.upload(el)));
+
+        // console.log(cloud_respones);
+
+        req.body.images=[];
+
+        req.body.images = cloud_respones.map(el=>el.url);
+
+
+    next();
+
+});
+
 
 // add new post
 exports.newpost=catchasync(async (req,res,next)=>{
@@ -11,6 +75,7 @@ exports.newpost=catchasync(async (req,res,next)=>{
     const canpost = req.user.canpost();
 
     req.body.owner=req.user.id;
+
     if(canpost.access===true)
     newPost=await Post.create(req.body);
     else
@@ -32,6 +97,7 @@ const canalterpost=(posts,postid)=>{
 // modify post
 exports.updatepost=catchasync(async(req,res,next)=>{
 
+    // return next(new AppError('working'));
 
     if(!canalterpost(req.user.posts,req.params.id))
     return next(new AppError('You can only update your posts',400));

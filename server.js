@@ -7,6 +7,7 @@ const db=process.env.MONGODB_URL.replace('<password>',process.env.MONGODB_PASS);
 mongoose.connect(db,{
   useCreateIndex:true,
   useNewUrlParser:true,
+  useUnifiedTopology:true,
   useFindAndModify:false
 }).then(()=>console.log('connected to MongoDb'));
 

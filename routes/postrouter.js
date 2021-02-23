@@ -6,14 +6,15 @@ const usercontroller = require('../controllers/usercontroller');
 
 
 postrouter.get('/',postscontroller.getallposts) //ok
-          .post('/',authcontroller.protect,postscontroller.newpost,usercontroller.addnewpost); //ok
+          .post('/',authcontroller.protect,postscontroller.uploadPostimage,postscontroller.resizePhoto,
+                     postscontroller.newpost,usercontroller.addnewpost); //ok
 
 
                       
 postrouter.route('/myposts').get(authcontroller.protect, postscontroller.getmyposts,postscontroller.getpost);
 
 postrouter.get('/:id',authcontroller.softprotect, postscontroller.getpost) //ok
-            .patch('/:id',authcontroller.protect,postscontroller.updatepost) //ok
+            .patch('/:id',authcontroller.protect,postscontroller.uploadPostimage,postscontroller.resizePhoto, postscontroller.updatepost) //ok
             .delete('/:id',authcontroller.protect,authcontroller.restrictto, postscontroller.deletepost); //ok
 
 
