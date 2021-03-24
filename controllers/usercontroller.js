@@ -32,7 +32,6 @@ exports.resizePhoto=catchasync( async (req,res,next)=>{
     
     if(!req.file)
     return next();
-
     
     req.file.buffer = await sharp(req.file.buffer).resize(500,500).toFormat('jpeg').jpeg({quality:90})
     .toBuffer();

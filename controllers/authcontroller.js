@@ -154,6 +154,7 @@ exports.forgotpassword=catchasync( async(req,res,next)=>{
 
     try{
         
+        // change the url to frontend password reset route
         const reseturl = `${req.protocol}://${req.get('host')}/api/v1/users/resetpassword/${token}`;
 
         await new Email(user,reseturl).sendPasswordReset();
@@ -190,6 +191,7 @@ exports.resetpassword=catchasync( async (req,res,next)=>{
 
     logintheuser(200,user,res);
     
+    // change url to frontend homepage
     await new Email(user,'https://fiinder.com/resetpassword').sendPasswordChanged();
     
 });

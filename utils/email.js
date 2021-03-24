@@ -61,6 +61,7 @@ module.exports = class Email{
 
   }
 
+  // add site url in template
   async sendPasswordChanged(){
 
     await this.sendmail('passwordupdated.html',`Dear ${this.username} your password is updated`);
