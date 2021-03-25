@@ -12,6 +12,7 @@ const postrouter = require('./routes/postrouter');
 const userrouter = require('./routes/userrouter'); 
 const errorcontroller = require('./controllers/errorcontroller');
 const cloudinary = require('cloudinary');
+const cors = require('cors');
 
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
@@ -19,7 +20,11 @@ cloudinary.config({
     api_secret: process.env.CLOUD_API_SECRET,
     });
 
+
 app.use(helmet());
+app.use(cors());
+
+app.options('*', cors());
 
 if(process.env.NODE_ENV==='development')
 app.use(morgan('dev'));
