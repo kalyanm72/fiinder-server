@@ -61,8 +61,7 @@ const postschema = new mongoose.Schema({
     dateidentified:Date,
     createdAt:{
         type:Date,
-        default:Date.now(),
-        select:false
+        default:Date.now()
     },
     claims:[{type:mongoose.Schema.ObjectId,
         ref:'User',select:false}],
