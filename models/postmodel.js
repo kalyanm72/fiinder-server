@@ -12,7 +12,7 @@ const postschema = new mongoose.Schema({
         trim:true
     },
     slug:String,
-    Description:{
+    description:{
         type:String,
         trim:true
     },
