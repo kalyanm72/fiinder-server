@@ -6,6 +6,8 @@ const usercontroller = require('../controllers/usercontroller');
 
 userrouter.post('/signup',authcontroller.signup); // ok
 userrouter.post('/login',authcontroller.login); //ok 
+userrouter.post('/logout',authcontroller.logout);
+userrouter.post('/loggedin',authcontroller.isLoggedIn);
 
 
 userrouter.post('/forgotpassword/:email',authcontroller.forgotpassword);

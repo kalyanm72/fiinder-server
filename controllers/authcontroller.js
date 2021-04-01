@@ -117,6 +117,52 @@ exports.protect = catchasync(async(req,res,next)=>{
     next();
 }); 
 
+exports.logout = (req, res) => {
+    res.cookie('jwt', 'loggedout', {
+      expires: new Date(Date.now() + 10 * 1000),
+      httpOnly: true
+    });
+    res.status(200).json({ status: 'success' });
+  };
+
+  exports.isLoggedIn = async (req, res, next) => {
+    if (req.cookies.jwt) {
+      try {
+        // 1) verify token
+        const decoded = await promisify(jwt.verify)(req.cookies.jwt, process.env.JWT_KEY);
+
+        // 2) Check if user still exists
+        const currentUser = await User.findById(decoded.id);
+        if (!currentUser) {
+          res.status(401).json({
+              status:'fail',
+              message:'user not loggedin'
+          });
+          return 0;
+        }
+  
+        // 3) Check if user changed password after the token was issued
+        if (currentUser.changedpassword(decoded.iat)) {
+            res.status(401).json({
+                status:'fail',
+                message:'user changed password'
+            });
+            return 0;
+        }
+  
+        // THERE IS A LOGGED IN USER
+        res.status(200).json({
+            status:'success',
+            user:currentUser
+        });
+        
+      } catch (err) {
+        return next(new AppError('cannot login',401));
+      }
+    }
+    next();
+  };
+
 exports.softprotect=catchasync( async (req,res,next)=>{
     if(req.cookies.jwt||(req.headers.authorization&&req.headers.authorization.startsWith('Bearer'))){
         let token;
