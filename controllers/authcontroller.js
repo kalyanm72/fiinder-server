@@ -204,6 +204,8 @@ exports.forgotpassword=catchasync( async(req,res,next)=>{
         // const reseturl = `${req.protocol}://${req.get('host')}/api/v1/users/resetpassword/${token}`;
         const reseturl='http://localhost:3000/resetpassword/'+token;
 
+        console.log(reseturl);
+
         await new Email(user,reseturl).sendPasswordReset();
         res.status(200).json({
             status:'success',
