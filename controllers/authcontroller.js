@@ -201,7 +201,8 @@ exports.forgotpassword=catchasync( async(req,res,next)=>{
     try{
         
         // change the url to frontend password reset route
-        const reseturl = `${req.protocol}://${req.get('host')}/api/v1/users/resetpassword/${token}`;
+        // const reseturl = `${req.protocol}://${req.get('host')}/api/v1/users/resetpassword/${token}`;
+        const reseturl='http://localhost:3000/resetpassword/'+token;
 
         await new Email(user,reseturl).sendPasswordReset();
         res.status(200).json({
