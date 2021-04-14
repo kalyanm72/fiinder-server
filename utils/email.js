@@ -13,11 +13,13 @@ module.exports = class Email{
   }
 
   newTransport(){
+
     if(process.env.NODE_ENV==='production'){
       return nodemailer.createTransport(sendinBlue({
         apiKey: process.env.SENDINBLUE_APIKEY,
       }));
     }
+
     return nodemailer.createTransport({
       host:process.env.EMAIL_HOST,
       PORT:process.env.EMAIL_PORT,

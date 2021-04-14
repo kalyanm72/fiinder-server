@@ -14,20 +14,22 @@ const signtoken=id=>{
     
 };
   
-const logintheuser= async (statuscode,user,res)=>{
+const logintheuser= async (statuscode,user,req,res)=>{
     const token = signtoken(user._id);
-
+    
     const cookieoptions={
         expire:new Date(Date.now()+process.env.JWT_TIMER*1000*86400),
-        httpOnly:true
+        httpOnly:true,
+        sameSite:'none'
     };
 
-    if(process.env==='production')
+    // cookieoptions.secure=req.secure || req.headers['x-forwarded-proto'] === 'https';
     cookieoptions.secure=true;
-
+    // console.log(cookieoptions.secure);
     res.cookie('jwt',token,cookieoptions);
     user.password=undefined;
 
+    // console.log(res.cookie);
 
     res.status(statuscode).json({
         status:'success',
@@ -59,11 +61,12 @@ exports.signup = catchasync( async(req,res,next)=>{
             // console.log(err);
             return next(new AppError(`mail could not be sent ${err}`));   
         }
-        logintheuser(201,newUser,res);
+        logintheuser(201,newUser,req,res);
         
 });
 
 exports.login = catchasync(async (req,res,next)=>{
+
     const {email,password} = req.body;
     if(!email||!password)
     return next(new AppError('email or password not provided',400));
@@ -75,7 +78,7 @@ exports.login = catchasync(async (req,res,next)=>{
     if(!user || !await user.correctpassword(password,user.password))
     return next(new AppError('Email or Password is invalid',401));
 
-    logintheuser(200,user,res);
+    logintheuser(200,user,req,res);
 
 });
 
@@ -120,25 +123,27 @@ exports.protect = catchasync(async(req,res,next)=>{
 exports.logout = (req, res) => {
     res.cookie('jwt', 'loggedout', {
       expires: new Date(Date.now() + 10 * 1000),
-      httpOnly: true
+      httpOnly: true,
+      sameSite:'none',
+      secure:true
     });
     res.status(200).json({ status: 'success' });
   };
 
   exports.isLoggedIn = async (req, res, next) => {
     if (req.cookies.jwt) {
-      try {
-        // 1) verify token
+        try {
+            // 1) verify token
         const decoded = await promisify(jwt.verify)(req.cookies.jwt, process.env.JWT_KEY);
-
+        
         // 2) Check if user still exists
         const currentUser = await User.findById(decoded.id);
         if (!currentUser) {
-          res.status(401).json({
-              status:'fail',
-              message:'user not loggedin'
-          });
-          return 0;
+            res.status(401).json({
+                status:'fail',
+                message:'user not loggedin'
+            });
+            return 0;
         }
   
         // 3) Check if user changed password after the token was issued
@@ -149,18 +154,18 @@ exports.logout = (req, res) => {
             });
             return 0;
         }
-  
+        
         // THERE IS A LOGGED IN USER
-        res.status(200).json({
+      return  res.status(200).json({
             status:'success',
             user:currentUser
         });
         
-      } catch (err) {
+    } catch (err) {
         return next(new AppError('cannot login',401));
-      }
     }
-    next();
+}
+        return next(new AppError('user not loggedin with cookies',500));
   };
 
 exports.softprotect=catchasync( async (req,res,next)=>{
@@ -238,7 +243,7 @@ exports.resetpassword=catchasync( async (req,res,next)=>{
 
     await user.save();
 
-    logintheuser(200,user,res);
+    logintheuser(200,user,req,res);
     
     // change url to frontend homepage
     await new Email(user,'https://fiinder.com/resetpassword').sendPasswordChanged();
@@ -260,7 +265,7 @@ exports.updatepassword=async(req,res,next)=>{
     await user.save();
     try{
         await new Email(user,'https://fiinder.com/resetpassword').sendPasswordChanged();
-        logintheuser(200,user,res);
+        logintheuser(200,user,req,res);
     }
     catch(err){
         return next(new AppError(`Mail cannot be sent ${err}`));
