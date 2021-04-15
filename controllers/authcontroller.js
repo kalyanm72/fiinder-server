@@ -18,7 +18,7 @@ const logintheuser= async (statuscode,user,req,res)=>{
     const token = signtoken(user._id);
     
     const cookieoptions={
-        expires:new Date(Date.now()+process.env.JWT_TIMER*1000*86400),
+        expires:new Date(Date.now()+process.env.JWT_COOKIE_TIMER*1000*86400),
         httpOnly:true,
         sameSite:'none'
     };
